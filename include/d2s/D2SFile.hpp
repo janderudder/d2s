@@ -14,8 +14,8 @@
 class D2SFile
 {
 public:
-    using ErrorStatus = std::uint8_t;
     enum class ErrorStatusFlag { NONE, SIZE, SIGNATURE=2, CHECKSUM=4 };
+    using ErrorStatus = int;
 
 private:
     constexpr static std::size_t   MINIMUM_SIZE     = 0x64;
@@ -40,7 +40,7 @@ public:
 
     void fixChecksum();
     void setLongAt(std::uint32_t value, std::size_t offset);
-    void setShortAt(std::uint32_t value, std::size_t offset);
+    void setShortAt(std::uint16_t value, std::size_t offset);
     void setBytesAt(std::initializer_list<std::uint8_t> bytes, std::size_t offset);
     void save();
 };

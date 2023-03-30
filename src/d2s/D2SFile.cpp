@@ -110,7 +110,9 @@ auto D2SFile::validate() const -> ErrorStatus
 auto D2SFile::computeChecksum() const -> std::uint32_t
 {
     std::uint32_t sum = 0;
-    for (std::uint8_t const byte : m_content) {
+    std::vector<std::uint8_t> copy {m_content};
+    *((uint32_t*)&copy[D2SFile::CHECKSUM_OFFSET]) = 0;
+    for (std::uint8_t const byte : copy) {
         sum = (sum << 1) | (sum >> 31);
         sum += byte;
     }
@@ -131,14 +133,14 @@ void D2SFile::fixChecksum()
 
 void D2SFile::setLongAt(std::uint32_t value, std::size_t offset)
 {
-
+    *(uint32_t*)&m_content[offset] = value;
 }
 
 
 
-void D2SFile::setShortAt(std::uint32_t value, std::size_t offset)
+void D2SFile::setShortAt(std::uint16_t value, std::size_t offset)
 {
-
+    *(uint16_t*)&m_content[offset] = value;
 }
 
 

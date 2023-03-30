@@ -26,9 +26,12 @@ int main(int const argc, char const* const* argv)
     D2SFile d2sFile {argv[1]};
 
     // d2sFile.setBytesAt({0xDD, 0xCC, 0xBB, 0xAA}, 0xC);
-    // d2sFile.setBytesAt
-
+    d2sFile.setShortAt(0xBBAA, 0xC);
     std::cout << std::hex << std::uppercase << d2sFile.checksum() << "\n";
+
+    d2sFile.setLongAt(0xDDCCBBAA, 0xC);
+    std::cout << std::hex << std::uppercase << d2sFile.checksum() << "\n";
+
     std::cout << std::hex << std::uppercase << d2sFile.computeChecksum() << "\n";
 
     // d2sFile.save();
