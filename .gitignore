@@ -1,0 +1,7 @@
+Makefile
+.vscode/
+bin/
+build/*/*
+sample-data/
+sample-data
+*.sh
