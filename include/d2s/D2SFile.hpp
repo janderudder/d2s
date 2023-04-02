@@ -18,9 +18,9 @@ public:
     using ErrorStatus = int;
 
 private:
-    constexpr static std::size_t   MINIMUM_SIZE     = 0x64;
-    constexpr static std::size_t   CHECKSUM_OFFSET  = 0xC;
-    constexpr static std::uint32_t D2S_SIGNATURE    = 0xAA55AA55;
+    constexpr static std::size_t   MINIMUM_SIZE    = 0x64;
+    constexpr static std::size_t   CHECKSUM_OFFSET = 0xC;
+    constexpr static std::uint32_t SIGNATURE       = 0xAA55AA55;
 
     std::filesystem::path     m_path;
     std::size_t               m_size;
@@ -35,13 +35,15 @@ public:
     auto longAt(std::size_t offset) const -> std::uint32_t;
     auto shortAt(std::size_t offset) const -> std::uint16_t;
 
-    auto validate() const -> ErrorStatus;
     auto computeChecksum() const -> std::uint32_t;
 
-    void fixChecksum();
+    auto errorStatus() const -> ErrorStatus;
+    auto isValid(ErrorStatusFlag const flag) const -> bool;
+
     void setLongAt(std::uint32_t value, std::size_t offset);
     void setShortAt(std::uint16_t value, std::size_t offset);
     void setBytesAt(std::initializer_list<std::uint8_t> bytes, std::size_t offset);
+    void fixChecksum();
     void save();
 };
 
