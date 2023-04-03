@@ -1,23 +1,15 @@
 #ifndef D2SFILE_HPP_INCLUDED
 #define D2SFILE_HPP_INCLUDED
 
-#include <bitset>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
 #include <vector>
 #include <span>
 
-#include "common/FlagSet.hpp"
 
-
-class D2SFile
+class D2SaveFile
 {
-public:
-    enum class ErrorStatusFlag { NONE, SIZE, SIGNATURE=2, CHECKSUM=4 };
-    using ErrorStatus = int;
-
-private:
     constexpr static std::size_t   MINIMUM_SIZE    = 0x64;
     constexpr static std::size_t   CHECKSUM_OFFSET = 0xC;
     constexpr static std::uint32_t SIGNATURE       = 0xAA55AA55;
@@ -27,7 +19,7 @@ private:
     std::vector<std::uint8_t> m_content;
 
 public:
-    D2SFile(std::filesystem::path filePath);
+    D2SaveFile(std::filesystem::path filePath);
 
     auto size() const -> std::size_t;
     auto checksum() const -> std::uint32_t;
@@ -37,8 +29,9 @@ public:
 
     auto computeChecksum() const -> std::uint32_t;
 
-    auto errorStatus() const -> ErrorStatus;
-    auto isValid(ErrorStatusFlag const flag) const -> bool;
+    auto hasValidSize() const -> bool;
+    auto hasValidSignature() const -> bool;
+    auto hasValidChecksum() const -> bool;
 
     void setLongAt(std::uint32_t value, std::size_t offset);
     void setShortAt(std::uint16_t value, std::size_t offset);

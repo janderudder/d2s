@@ -1,4 +1,4 @@
-#include "d2s/D2SFile.hpp"
+#include "d2s/D2SaveFile.hpp"
 
 #include <fstream>
 
@@ -8,7 +8,7 @@ namespace fs = std::filesystem;
 ////////////////////////////////////////////////////////////////////////////////
 // ctor
 ////////////////////////////////////////////////////////////////////////////////
-D2SFile::D2SFile(std::filesystem::path filePath):
+D2SaveFile::D2SaveFile(std::filesystem::path filePath):
     m_path {filePath}
 {
     auto const fileStatus = fs::status(filePath);
@@ -28,28 +28,28 @@ D2SFile::D2SFile(std::filesystem::path filePath):
 ////////////////////////////////////////////////////////////////////////////////
 // getters
 ////////////////////////////////////////////////////////////////////////////////
-auto D2SFile::size() const -> std::size_t
+auto D2SaveFile::size() const -> std::size_t
 {
     return m_size;
 }
 
 
 
-auto D2SFile::checksum() const -> std::uint32_t
+auto D2SaveFile::checksum() const -> std::uint32_t
 {
-    return this->longAt(D2SFile::CHECKSUM_OFFSET);
+    return this->longAt(D2SaveFile::CHECKSUM_OFFSET);
 }
 
 
 
-auto D2SFile::content() const -> std::span<std::uint8_t const>
+auto D2SaveFile::content() const -> std::span<std::uint8_t const>
 {
     return {m_content.cbegin(), m_content.size()};
 }
 
 
 
-auto D2SFile::longAt(std::size_t offset) const -> std::uint32_t
+auto D2SaveFile::longAt(std::size_t offset) const -> std::uint32_t
 {
     return (m_content[offset+3] << 24)
         |  (m_content[offset+2] << 16)
@@ -59,7 +59,7 @@ auto D2SFile::longAt(std::size_t offset) const -> std::uint32_t
 
 
 
-auto D2SFile::shortAt(std::size_t offset) const -> std::uint16_t
+auto D2SaveFile::shortAt(std::size_t offset) const -> std::uint16_t
 {
     return (m_content[offset+1] << 8) | m_content[offset];
 }
@@ -69,7 +69,7 @@ auto D2SFile::shortAt(std::size_t offset) const -> std::uint16_t
 ////////////////////////////////////////////////////////////////////////////////
 // computation
 ////////////////////////////////////////////////////////////////////////////////
-auto D2SFile::computeChecksum() const -> std::uint32_t
+auto D2SaveFile::computeChecksum() const -> std::uint32_t
 {
     std::uint32_t sum = 0;
 
@@ -79,7 +79,7 @@ auto D2SFile::computeChecksum() const -> std::uint32_t
 
     // Several loops in order to avoid the addition of the current checksum.
     size_t byteIndex;
-    for (byteIndex=0; byteIndex<D2SFile::CHECKSUM_OFFSET; ++byteIndex) {
+    for (byteIndex=0; byteIndex<D2SaveFile::CHECKSUM_OFFSET; ++byteIndex) {
         sum = m_content[byteIndex] + rotateLeft(sum);
     }
     // Still got to rotate though. It's as if we added a checksum of 0.
@@ -97,36 +97,23 @@ auto D2SFile::computeChecksum() const -> std::uint32_t
 ////////////////////////////////////////////////////////////////////////////////
 // validity
 ////////////////////////////////////////////////////////////////////////////////
-auto D2SFile::errorStatus() const -> ErrorStatus
+auto D2SaveFile::hasValidSize() const -> bool
 {
-    ErrorStatus status = (ErrorStatus)ErrorStatusFlag::NONE;
-    if (this->size() < D2SFile::MINIMUM_SIZE) {
-        status |= (ErrorStatus)ErrorStatusFlag::SIZE;
-    }
-    if (this->longAt(0) != D2SFile::SIGNATURE) {
-        status |= (ErrorStatus)ErrorStatusFlag::SIGNATURE;
-    }
-    if (this->longAt(D2SFile::CHECKSUM_OFFSET) != this->computeChecksum()) {
-        status |= (ErrorStatus)ErrorStatusFlag::CHECKSUM;
-    }
-    return status;
+    return this->m_size >= D2SaveFile::MINIMUM_SIZE;
 }
 
 
 
-auto D2SFile::isValid(ErrorStatusFlag const flag) const -> bool
+auto D2SaveFile::hasValidSignature() const -> bool
 {
-    switch (flag)
-    {
-    case ErrorStatusFlag::SIZE:
-        return this->size() >= D2SFile::MINIMUM_SIZE;
-    case ErrorStatusFlag::SIGNATURE:
-        return this->longAt(0) == D2SFile::SIGNATURE;
-    case ErrorStatusFlag::CHECKSUM:
-        return this->longAt(D2SFile::CHECKSUM_OFFSET)== this->computeChecksum();
-    default:
-        return true;
-    }
+    return this->longAt(0) == D2SaveFile::SIGNATURE;
+}
+
+
+
+auto D2SaveFile::hasValidChecksum() const -> bool
+{
+    return this->longAt(D2SaveFile::CHECKSUM_OFFSET) == this->computeChecksum();
 }
 
 
@@ -134,21 +121,21 @@ auto D2SFile::isValid(ErrorStatusFlag const flag) const -> bool
 ////////////////////////////////////////////////////////////////////////////////
 // setters
 ////////////////////////////////////////////////////////////////////////////////
-void D2SFile::setLongAt(std::uint32_t value, std::size_t offset)
+void D2SaveFile::setLongAt(std::uint32_t value, std::size_t offset)
 {
     *(uint32_t*)&m_content[offset] = value;
 }
 
 
 
-void D2SFile::setShortAt(std::uint16_t value, std::size_t offset)
+void D2SaveFile::setShortAt(std::uint16_t value, std::size_t offset)
 {
     *(uint16_t*)&m_content[offset] = value;
 }
 
 
 
-void D2SFile::setBytesAt(std::initializer_list<std::uint8_t> bytes, std::size_t offset)
+void D2SaveFile::setBytesAt(std::initializer_list<std::uint8_t> bytes, std::size_t offset)
 {
     for (std::size_t idx=0; idx<bytes.size(); ++idx) {
         m_content[offset+idx] = *(bytes.begin()+idx);
@@ -157,14 +144,14 @@ void D2SFile::setBytesAt(std::initializer_list<std::uint8_t> bytes, std::size_t 
 
 
 
-void D2SFile::fixChecksum()
+void D2SaveFile::fixChecksum()
 {
-    setLongAt(this->computeChecksum(), D2SFile::CHECKSUM_OFFSET);
+    setLongAt(this->computeChecksum(), D2SaveFile::CHECKSUM_OFFSET);
 }
 
 
 
-void D2SFile::save()
+void D2SaveFile::save()
 {
     std::ofstream file {m_path, std::ios::binary|std::ios::trunc};
     file.write((char*)m_content.data(), m_size);
