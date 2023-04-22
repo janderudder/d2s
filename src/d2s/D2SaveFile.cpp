@@ -20,7 +20,7 @@ D2SaveFile::D2SaveFile(std::filesystem::path filePath):
 ////////////////////////////////////////////////////////////////////////////////
 // getters
 ////////////////////////////////////////////////////////////////////////////////
-auto D2SaveFile::checksum() const -> std::uint32_t
+auto D2SaveFile::checksum() const -> uint32_t
 {
     return this->longAt(D2SaveFile::CHECKSUM_OFFSET);
 }
@@ -30,11 +30,11 @@ auto D2SaveFile::checksum() const -> std::uint32_t
 ////////////////////////////////////////////////////////////////////////////////
 // computation
 ////////////////////////////////////////////////////////////////////////////////
-auto D2SaveFile::computeChecksum() const -> std::uint32_t
+auto D2SaveFile::computeChecksum() const -> uint32_t
 {
-    std::uint32_t sum = 0;
+    uint32_t sum = 0;
 
-    auto const rotateLeft = [](std::uint32_t const sum) {
+    auto const rotateLeft = [](uint32_t const sum) {
         return (sum << 1) | (sum >> 31);
     };
 

@@ -14,14 +14,14 @@ class Quest;
 
 class D2SaveFile : public D2File
 {
-    constexpr static std::size_t   MINIMUM_SIZE    = 0x64;
-    constexpr static std::size_t   CHECKSUM_OFFSET = 0xC;
+    constexpr static size_t MINIMUM_SIZE    = 0x64;
+    constexpr static size_t CHECKSUM_OFFSET = 0xC;
 
 public:
     D2SaveFile(std::filesystem::path filePath);
 
-    auto checksum() const -> std::uint32_t;
-    auto computeChecksum() const -> std::uint32_t;
+    auto checksum() const -> uint32_t;
+    auto computeChecksum() const -> uint32_t;
 
     auto hasValidSize() const -> bool;
     auto hasValidChecksum() const -> bool;
