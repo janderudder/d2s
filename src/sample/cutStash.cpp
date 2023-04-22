@@ -10,17 +10,65 @@
 
 int cutStash(int const argc, char const* const* argv)
 {
-    if (argc<4) {
-        std::cerr << "Please provide three file paths as argument (one input and two output).\n";
+    /**
+     * parse program arguments
+     */
+    std::vector<std::string_view> positional;
+    bool overwrite = false;
+
+    using namespace std::string_view_literals;
+
+    for (ssize_t idx=1; idx<argc; ++idx)
+    {
+        std::string_view const arg = argv[idx];
+
+        if (arg[0] == '-') {
+            if ("-w"sv == arg) {
+                overwrite = true;
+            }
+        }
+        else if (positional.size() < 3) {
+            positional.push_back(arg);
+        }
+    }
+
+    if (positional.size() < 3) {
+        std::cerr << "Please provide three file paths as argument (the first for input, then two for output).\n";
         return EXIT_FAILURE;
     }
 
+    std::string_view const
+        inPath = positional[0],
+        outPath1 = positional[1],
+        outPath2 = positional[2];
+
     try {
-        D2File const d2File {argv[1]};
+        /**
+         * open input file
+         */
+
+        D2File const d2File {inPath};
 
         if (!d2File.hasValidSignature()) {
-            throw std::invalid_argument("File has invalid signature.");
+            throw std::invalid_argument("file has invalid signature");
         }
+
+        /**
+         * open output file(s)
+         */
+        namespace fs = std::filesystem;
+
+        if (!overwrite && (fs::exists(outPath1) || fs::exists(outPath2))) {
+            std::cerr << "One or more output files already exists. Aborting\n";
+            return EXIT_FAILURE;
+        }
+
+        std::ofstream out1 {outPath1.data(), std::ios::binary};
+        std::ofstream out2 {outPath2.data(), std::ios::binary};
+
+        /**
+         * read d2i data into separate pages
+         */
 
         auto const data = d2File.content();
 
@@ -43,27 +91,8 @@ int cutStash(int const argc, char const* const* argv)
         stashPages.emplace_back(data.begin() + start, data.begin()+d2File.size());
 
         /**
-         * data is read, now save files
+         * save to output files
          */
-        bool overwrite = false;
-
-        using namespace std::string_view_literals;
-
-        for (ssize_t idx=0; idx<argc; ++idx) {
-            if ("-w"sv == argv[idx]) {
-                overwrite = true;
-            }
-        }
-
-        namespace fs = std::filesystem;
-
-        if (!overwrite && (fs::exists(argv[2]) || fs::exists(argv[3]))) {
-            std::cout << "One or more output files already exists. Aborting\n";
-            return EXIT_FAILURE;
-        }
-
-        std::ofstream out1 {argv[2], std::ios::binary};
-        std::ofstream out2 {argv[3], std::ios::binary};
 
         for (size_t pageIndex=0; pageIndex<3 && pageIndex<stashPages.size(); ++pageIndex)
         {
@@ -73,6 +102,7 @@ int cutStash(int const argc, char const* const* argv)
                 out1 << stashPage[byteIndex];
             }
         }
+
         for (size_t pageIndex=3; pageIndex<6 && pageIndex<stashPages.size(); ++pageIndex)
         {
             auto const& stashPage = stashPages[pageIndex];
@@ -84,16 +114,19 @@ int cutStash(int const argc, char const* const* argv)
 
         out1.close();
         out2.close();
-        std::cout << "written "<< stashPages.size() <<" pages to disk.\n";
+
+        std::cout << "Written "<< stashPages.size() <<" pages to disk.\n";
         return EXIT_SUCCESS;
     }
 
     catch (std::invalid_argument const& except) {
-        std::cout << except.what() << " Probably not a d2i file.\n";
+        std::cerr << "Error: " << except.what() << ". Probably not a d2i file.\n";
     }
-
     catch (std::exception const& except) {
-        std::cout << except.what() << "\n";
+        std::cerr << "Exception: " << except.what() << "\n";
+    }
+    catch (...) {
+        std::cerr << "Unknown exception\n";
     }
 
     return EXIT_FAILURE;
