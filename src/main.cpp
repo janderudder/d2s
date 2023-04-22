@@ -1,7 +1,5 @@
 #include <iostream>
 
-
-
 int sample_D2SaveFile(int const argc, char const* const* argv);
 int cutStash(int const argc, char const* const* argv);
 

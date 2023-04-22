@@ -35,20 +35,26 @@ int sample_D2SaveFile(int const argc, char const* const* argv)
         std::cout << "File looks like a D2S file.\n";
         std::cout << "Checksum is " << (!d2sFile.hasValidChecksum()?"in":"") << "valid.\n";
 
+        auto const currentChecksum = d2sFile.checksum();
+        auto const computedChecksum = d2sFile.computeChecksum();
+
         // display current checksum (may be good or corrupt)
-        std::cout << "Current checksum:  " << std::hex << std::uppercase << d2sFile.checksum() << "\n";
+        std::cout << "Current checksum:  " << std::hex << std::uppercase << currentChecksum << "\n";
 
         // compute the correct checksum (may be the same than above)
-        std::cout << "Computed checksum: " << std::hex << std::uppercase << d2sFile.computeChecksum() << "\n";
+        std::cout << "Computed checksum: " << std::hex << std::uppercase << computedChecksum << "\n";
 
-        // compute and write the checksum to the data structure
-        d2sFile.fixChecksum();
+        if (currentChecksum != computedChecksum)
+        {
+            // compute and write the checksum to the data structure
+            d2sFile.fixChecksum();
 
-        // read the checksum again from the structure (may have changed with the fix)
-        std::cout << "Fixed checksum:    " << std::hex << std::uppercase << d2sFile.checksum() << "\n";
+            // read the checksum again from the structure (may have changed with the fix)
+            std::cout << "Fixed checksum:    " << std::hex << std::uppercase << d2sFile.checksum() << "\n";
 
-        // uncomment this line to write data to the file (with correct checksum)
-        // d2sFile.save();
+            // uncomment the following line to write data to the file (with correct checksum)
+            // d2sFile.save();
+        }
     }
     catch (std::invalid_argument const& except) {
         std::cout << except.what() << " Probably not a D2S file.\n";
