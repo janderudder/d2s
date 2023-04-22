@@ -10,33 +10,31 @@
 class Quest
 {
     std::string              m_name;
-    unsigned int             m_actNumber;
+    uint8_t                  m_actNumber;
     std::vector<std::string> m_states;
-    size_t                   m_currentStateIndex;
-
-    constexpr static size_t  MAX_STATES = 32;
+    uint8_t                  m_currentStateIndex;
 
 public:
-    constexpr static size_t NOT_STARTED = MAX_STATES;
-    constexpr static size_t STARTED     = MAX_STATES + 1;
-    constexpr static size_t COMPLETED   = MAX_STATES + 2;
+    enum : uint8_t { NOT_STARTED, STARTED, COMPLETED };
 
 public:
     Quest(
         std::string_view name,
-        unsigned int actNumber,
+        uint8_t actNumber,
         std::initializer_list<std::string> states,
-        uint32_t currentStateIndex = 0
+        uint8_t currentStateIndex = 0
     ) noexcept;
 
+    auto actNumber() const -> uint8_t;
     auto isCompleted() const -> bool;
     auto currentState() const -> std::string_view;
+    auto currentStateIndex() const -> uint8_t;
     auto states() const -> std::span<std::string const>;
 
     auto advanceState() -> std::string_view;
 
 private:
-    auto _lastStateIndex() const -> size_t;
+    auto _lastStateIndex() const -> uint8_t;
 
 };
 

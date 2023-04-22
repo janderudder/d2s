@@ -7,6 +7,8 @@
 #include <vector>
 #include <span>
 
+class Quest;
+
 
 class D2SaveFile
 {
@@ -38,6 +40,10 @@ public:
     void setBytesAt(std::initializer_list<std::uint8_t> bytes, std::size_t offset);
     void fixChecksum();
     void save();
+
+private:
+    auto _serialize(Quest const& quest) const -> uint32_t;
+
 };
 
 

@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+#include "d2s/Quest.hpp"
+
 namespace fs = std::filesystem;
 
 
@@ -135,8 +137,10 @@ void D2SaveFile::setShortAt(std::uint16_t value, std::size_t offset)
 
 
 
-void D2SaveFile::setBytesAt(std::initializer_list<std::uint8_t> bytes, std::size_t offset)
-{
+void D2SaveFile::setBytesAt(
+    std::initializer_list<std::uint8_t> bytes,
+    std::size_t offset
+){
     for (std::size_t idx=0; idx<bytes.size(); ++idx) {
         m_content[offset+idx] = *(bytes.begin()+idx);
     }
@@ -155,4 +159,16 @@ void D2SaveFile::save()
 {
     std::ofstream file {m_path, std::ios::binary|std::ios::trunc};
     file.write((char*)m_content.data(), m_size);
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+// private
+////////////////////////////////////////////////////////////////////////////////
+auto D2SaveFile::_serialize(Quest const &quest) const -> uint32_t
+{
+    return (quest.isCompleted())
+        ? 0b1000'0000'0000'0000
+        : static_cast<uint32_t>(quest.currentStateIndex());
 }

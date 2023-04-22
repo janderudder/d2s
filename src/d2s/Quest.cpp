@@ -3,14 +3,14 @@
 
 Quest::Quest(
     std::string_view name,
-    unsigned int actNumber,
+    uint8_t actNumber,
     std::initializer_list<std::string> states,
-    uint32_t currentStateIndex
+    uint8_t currentStateIndex
 ) noexcept:
     m_name              {name},
-    m_actNumber         {actNumber},
+    m_actNumber         {actNumber}
 {
-    m_states.reserve(states.size()+3);
+    m_states.reserve(states.size() + 3);
     m_states.push_back("not started");
     m_states.push_back("started");
     m_states.insert(m_states.end(), states);
@@ -36,6 +36,13 @@ Quest::Quest(
 ////////////////////////////////////////////////////////////////////////////////
 // getters
 ////////////////////////////////////////////////////////////////////////////////
+auto Quest::actNumber() const -> uint8_t
+{
+    return m_actNumber;
+}
+
+
+
 auto Quest::isCompleted() const -> bool
 {
     return m_currentStateIndex == _lastStateIndex();
@@ -46,6 +53,13 @@ auto Quest::isCompleted() const -> bool
 auto Quest::currentState() const -> std::string_view
 {
     return m_states[m_currentStateIndex];
+}
+
+
+
+auto Quest::currentStateIndex() const -> uint8_t
+{
+    return m_currentStateIndex;
 }
 
 
@@ -73,7 +87,7 @@ auto Quest::advanceState() -> std::string_view
 ////////////////////////////////////////////////////////////////////////////////
 // private
 ////////////////////////////////////////////////////////////////////////////////
-auto Quest::_lastStateIndex() const->size_t
+auto Quest::_lastStateIndex() const-> uint8_t
 {
     return m_states.size() - 1;
 }
