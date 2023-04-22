@@ -12,7 +12,6 @@
 #include <iostream>
 
 #include "d2s/D2SaveFile.hpp"
-#include "common/FlagSet.hpp"
 
 
 int sample_D2SaveFile(int const argc, char const* const* argv)
