@@ -8,22 +8,40 @@
 #include "d2s/D2File.hpp"
 
 
-int cutStash(int const argc, char const* const* argv)
+static int displayHelp(std::string_view const baseName)
 {
+    std::cout << "StashCut beta\n"
+        << "Separate into two distinct files, a shared stash file containing "
+        << "more than three stashes (modified game).\n"
+        << "Usage:\n\n"
+        << " $ " << baseName << " SharedStashFile.d2i output1File.d2i output2File.d2i\n\n"
+        << "The first argument is the shared stash file to read.\n"
+        << "The output file paths given as second and third parameter should not exist "
+        << "prior to the command. Add a '-w' switch to overwrite existing files.\n";
+    return EXIT_SUCCESS;
+}
+
+
+
+int stashCut(int const argc, char const* const* argv)
+{
+    namespace fs = std::filesystem;
+
     /**
      * parse program arguments
      */
     std::vector<std::string_view> positional;
     bool overwrite = false;
 
-    using namespace std::string_view_literals;
-
     for (ssize_t idx=1; idx<argc; ++idx)
     {
         std::string_view const arg = argv[idx];
 
-        if (arg[0] == '-') {
-            if ("-w"sv == arg) {
+        if (arg.starts_with('-')) {
+            if (arg == "--help" || arg == "-h") {
+                return displayHelp(fs::path{argv[0]}.filename().string());
+            }
+            else if (arg == "--overwrite" || arg == "-w") {
                 overwrite = true;
             }
         }
@@ -46,7 +64,6 @@ int cutStash(int const argc, char const* const* argv)
         /**
          * open input file
          */
-
         D2File const d2File {inPath};
 
         if (!d2File.hasValidSignature()) {
@@ -56,8 +73,6 @@ int cutStash(int const argc, char const* const* argv)
         /**
          * open output file(s)
          */
-        namespace fs = std::filesystem;
-
         if (!overwrite && (fs::exists(outPath1) || fs::exists(outPath2))) {
             std::cerr << "One or more output files already exists. Aborting\n";
             return EXIT_FAILURE;
@@ -69,26 +84,24 @@ int cutStash(int const argc, char const* const* argv)
         /**
          * read d2i data into separate pages
          */
+        std::vector<std::vector<uint8_t>> stashPages;
+        size_t pageStart = 0;
 
         auto const data = d2File.content();
-
-        std::vector<std::vector<uint8_t>> stashPages;
-
-        size_t start = 0;
 
         for (size_t idx=4; idx<d2File.size(); ++idx)
         {
             if (d2File.longAt(idx) == 0xAA55AA55)
             {
-                auto const beg = data.begin() + start;
+                auto const beg = data.begin() + pageStart;
                 auto const end = data.begin() + idx;
                 stashPages.push_back({beg, end});
-                start = idx;
+                pageStart = idx;
                 idx += 3; // next loop iteration will make it +4
             }
         }
 
-        stashPages.emplace_back(data.begin() + start, data.begin()+d2File.size());
+        stashPages.emplace_back(data.begin() + pageStart, data.begin()+d2File.size());
 
         /**
          * save to output files
