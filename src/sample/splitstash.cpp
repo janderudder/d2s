@@ -10,7 +10,7 @@
 
 static int displayHelp(std::string_view const baseName)
 {
-    std::cout << "StashCut beta\n"
+    std::cout << "SplitStash beta\n"
         << "Separate into two distinct files, a shared stash file containing "
         << "more than three stashes (modified game).\n"
         << "Usage:\n\n"
@@ -23,7 +23,7 @@ static int displayHelp(std::string_view const baseName)
 
 
 
-int stashCut(int const argc, char const* const* argv)
+int splitStash(int const argc, char const* const* argv)
 {
     namespace fs = std::filesystem;
 

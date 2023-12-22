@@ -1,11 +1,11 @@
 #include <iostream>
 
 int sample_D2SaveFile(int const argc, char const* const* argv);
-int stashCut(int const argc, char const* const* argv);
+int splitStash(int const argc, char const* const* argv);
 
 int main(int const argc, char const* const* argv)
 {
-    stashCut(argc, argv);
+    splitStash(argc, argv);
 }
 
 
