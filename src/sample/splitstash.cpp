@@ -5,19 +5,26 @@
 #include <stdexcept>
 #include <vector>
 
+#include <format>
+
 #include "d2s/D2File.hpp"
 
 
 static int displayHelp(std::string_view const baseName)
 {
-    std::cout << "SplitStash beta\n"
-        << "Separate into two distinct files, a shared stash file containing "
-        << "more than three stashes (modified game).\n"
-        << "Usage:\n\n"
-        << " $ " << baseName << " SharedStashFile.d2i output1File.d2i output2File.d2i\n\n"
-        << "The first argument is the shared stash file to read.\n"
-        << "The output file paths given as second and third parameter should not exist "
-        << "prior to the command. Add a '-w' switch to overwrite existing files.\n";
+    std::cout << std::format(
+R"(SplitStash: split a shared stash file containing more than three stashes
+(modified game) into two distinct files.
+
+Usage:
+
+    $ {} shared_stash_file.d2i output_file_1.d2i output_file_2.d2i
+
+The first argument is the shared stash file to read.
+The program will abort if the file paths given as second and third parameter
+already exist: add a '-w' switch to bypass that behavior and overwrite existing
+files.
+)", baseName);
     return EXIT_SUCCESS;
 }
 
